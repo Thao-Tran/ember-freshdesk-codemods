@@ -1,8 +1,8 @@
-'use strict';
+'use strict'
 
-const { runTransformTest } = require('codemod-cli');
+const { runTransformTest } = require('codemod-cli')
 
 runTransformTest({
   type: 'jscodeshift',
-  name: 'remove-unused-get-import',
-});
+  name: 'remove-unused-get-import'
+})

@@ -1,8 +1,8 @@
-'use strict';
+'use strict'
 
-const { runTransformTest } = require('codemod-cli');
+const { runTransformTest } = require('codemod-cli')
 
 runTransformTest({
   type: 'jscodeshift',
-  name: 'mocha-to-qunit',
-});
+  name: 'mocha-to-qunit'
+})
