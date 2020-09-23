@@ -43,14 +43,14 @@ module('Integration | Component', function(hooks) {
     });
 
     test('Testing await done', async function(assert) {
-      assert.notEqual(false, true);
+      assert.false(false);
     });
 
     test('basic negative expect statements', async function(assert) {
-      assert.notEqual(false, true);
-      assert.notEqual(false, true, 'Message');
-      assert.notEqual(true, false);
-      assert.notEqual(true, false, 'Message');
+      assert.false(false);
+      assert.false(false, 'Message');
+      assert.true(true);
+      assert.true(true, 'Message');
       assert.notEqual(1, 2);
       await assert.notEqual(1, 2, 'Message');
 
@@ -66,7 +66,7 @@ module('Integration | Component', function(hooks) {
     test('Method with return expression', function(assert) {
       run.later(() => {
         try {
-          assert.equal(scrollSpy.calledOnce, true);
+          assert.true(scrollSpy.calledOnce);
         } catch(err) {}
       }, 100);
 
@@ -94,12 +94,12 @@ module('Integration | Component', function(hooks) {
       // Comment
       [true, true].forEach((key) => {
         // Inner Comment
-        assert.equal(item, true);
+        assert.true(key);
       });
 
       [true, true].forEach(function(item) {
         // Inner Comment
-        assert.equal(item, true);
+        assert.true(item);
       });
     });
   });

@@ -3,8 +3,8 @@ function removeUnusedImportSpecifiers(j, root) {
     .filter((path) => {
       let importName = (path.node.local || path.node.imported).name;
       let identifierPresent = root.find(j.Identifier, {
-          name: importName
-        })
+        name: importName
+      })
         .filter((path) => {
           return (path.name !== 'local' && path.name !== 'imported')
         })
@@ -43,35 +43,19 @@ function setupHooksForTest(setupTestTypes, j, root) {
 }
 
 function setupCallbackHooks(hooks, name, j, root) {
-  root.find(j.CallExpression, { callee: { name }})
-    .filter((path) => {
-      let actualPath = path.node.arguments[1];
-      let isNestedModule = findIdentifier(actualPath, name, j, root).length === 0;
-      let hasHooks = hooks.some((name) => {
-        return !(findIdentifier(path, name, j, root).length === 0);
+  hooks.reduce(
+    (paths, name) => paths.concat(root.find(j.Identifier, { name }).paths()),
+    []
+  ).forEach((path) => {
+    j(path).closest(j.ExpressionStatement)
+      .forEach((callback) => {
+        callback.node.expression.callee.name = `hooks.${callback.node.expression.callee.name}`;
       });
-      return (isNestedModule && hasHooks);
-    })
-    .forEach((path) => {
-      j(path).find(j.ExpressionStatement)
-        .filter((path) => {
-          return hooks.some((name) => {
-            return !(findIdentifier(path, name, j, root).length === 0);
-          });
-        })
-        .forEach(({node}) => {
-          let callee = node.expression.callee;
-          let name = callee.name;
-
-          callee.name = `hooks.${name}`;
-        });
-
-        return path.node.arguments[1].params = ['hooks'];
-    });
-}
-
-function findIdentifier(path, name, j, root) {
-  return j(path).find(j.Identifier, { name });
+    j(path).closest(j.CallExpression, { callee: { name } })
+      .forEach((module) => {
+        module.node.arguments[1].params = ['hooks'];
+      });
+  });
 }
 
 function transformHooks(path, name, j, root) {

@@ -1,4 +1,4 @@
-const { hasValue, joinParams, extractExpect, constructDomExists, constructDomAssertions, findIdentifier } = require('./utils');
+const { hasValue, joinParams, extractExpect, constructDomExists, constructDomAssertions, findIdentifier } = require('./utils')
 
 module.exports = [{
   name: 'expected-true-or-false',
@@ -18,10 +18,12 @@ module.exports = [{
       hasShouldNot
     } = extractExpect(path, j);
 
-    var assertMethod = hasShouldNot ? 'notEqual': 'equal';
-    var assertValue = expression.property.name === 'true';
+    var assertMethod = expression.property.name === 'true';
+    if (hasShouldNot) {
+      assertMethod = !assertMethod;
+    }
 
-    return `assert.${assertMethod}(${joinParams(assertArgumentSource, assertValue, assertMessage)});`;
+    return `assert.${assertMethod}(${joinParams(assertArgumentSource, assertMessage)});`;
   }
 }, {
   name: 'expected-ok-or-empty-or-exists-or-present-or-undefined',
@@ -76,43 +78,44 @@ module.exports = [{
   transformer: function (expression, path, j) {
     var { assertArgumentSource, assertMessage, hasShouldNot } = extractExpect(path, j);
     let selector = `${assertArgumentSource}.called`;
-    let assertArgs = joinParams(selector, !hasShouldNot, assertMessage);
-    return `assert.equal(${assertArgs});`;
+    let assertArgs = joinParams(selector, assertMessage);
+    return `assert.${!hasShouldNot}(${assertArgs});`;
   }
 }, {
-    name: 'expected-match',
-    /* expect(result)
+  name: 'expected-match',
+  /* expect(result)
        .to.be.match
        .to.not.match
     */
-    matcher: function (expression, path, j) {
-      let name = (expression.callee && expression.callee.property.name) || '';
-      return name === 'match';
-    },
-    transformer: function (expression, path, j) {
-      var { assertArgumentSource, assertMessage, hasShouldNot } = extractExpect(path, j);
-      var expectedArgument = j(expression.arguments).toSource();
-      var assertMethod = hasShouldNot ? 'notMatch' : 'match';
-      var assertArguments = joinParams(assertArgumentSource, expectedArgument, assertMessage);
+  matcher: function (expression, path, j) {
+    let name = (expression.callee && expression.callee.property && expression.callee.property.name) || '';
+    return name === 'match';
+  },
+  transformer: function (expression, path, j) {
+    var { assertArgumentSource, assertMessage, hasShouldNot } = extractExpect(path, j);
+    var expectedArgument = j(expression.arguments).toSource();
+    var assertMethod = hasShouldNot ? 'notOk' : 'ok';
+    var assertArguments = joinParams(`${assertArgumentSource}.match(${expectedArgument})`, assertMessage);
 
-      return `assert.${assertMethod}(${assertArguments});`;
-    }
+    return `assert.${assertMethod}(${assertArguments});`;
+  }
 }, {
-    name: 'expected-closeto',
-    /* expect(result)
+  name: 'expected-closeto',
+  /* expect(result)
        .to.be.closeTo
     */
-    matcher: function (expression) {
-      let name = (expression.callee && expression.callee.property.name) || '';
-      return name === 'closeTo';
-    },
-    transformer: function (expression, path, j) {
-      var { assertArgumentSource, assertMessage } = extractExpect(path, j);
-      var expectedArgument = j(expression.arguments).toSource();
-      var assertArguments = joinParams(assertArgumentSource, ...expectedArgument, assertMessage);
+  matcher: function (expression) {
+    let name = (expression.callee && expression.callee.property && expression.callee.property.name) || '';
+    return name === 'closeTo';
+  },
+  transformer: function (expression, path, j) {
+    var { assertArgumentSource, assertMessage } = extractExpect(path, j);
+    var [expectedArgument, delta] = expression.arguments;
+    var assertStatement = `${assertArgumentSource} >= ${expectedArgument.value - delta.value} && ${assertArgumentSource} <= ${expectedArgument.value + delta.value}`;
+    var assertArguments = joinParams(assertStatement, assertMessage);
 
-      return `assert.closeTo(${assertArguments});`;
-    }
+    return `assert.true(${assertArguments});`;
+  }
 }, {
   name: 'expected-equal',
   // expect(true)
@@ -125,13 +128,18 @@ module.exports = [{
   //  .to.eql({key: value});
   //  .to.not.deep.equal({key: someOthervalue});
   matcher: function(expression) {
-    return (expression.callee && ['equal', 'eql', 'eq', 'equals'].includes(expression.callee.property.name));
+    return (expression.callee && expression.callee.property && ['equal', 'eql', 'eq', 'equals'].includes(expression.callee.property.name));
   },
   transformer: function (expression, path, j) {
     var { assertArgumentSource, hasShouldNot, assertMessage } = extractExpect(path, j);
     var expectedArgument = j(expression.arguments).toSource();
     var assertMethod;
     var hasDeepAssertion = findIdentifier(path, j, 'deep');
+
+    if(expectedArgument === 'true' || expectedArgument === 'false') {
+      assertMethod = hasShouldNot ? expectedArgument !== 'true' : expectedArgument === 'true';
+      return `assert.${assertMethod}(${joinParams(assertArgumentSource, assertMessage)});`;
+    }
 
     if(expression.callee.property.name === 'eql' || hasDeepAssertion) {
       assertMethod = hasShouldNot ? 'notDeepEqual': 'deepEqual';
@@ -145,7 +153,7 @@ module.exports = [{
   name: 'expected-length',
   // expect(findAll('[data-test-id=page-title]')).to.have.length(1);
   matcher: function(expression) {
-    return expression.callee && expression.callee.property.name.includes('length');
+    return expression.callee && expression.callee.property && expression.callee.property.name.includes('length');
   },
   transformer: function (expression, path, j) {
     var { assertArgument, assertArgumentSource, assertMessage, hasSelectorWithoutProperty } = extractExpect(path, j);
@@ -156,10 +164,10 @@ module.exports = [{
       if (hasSelectorWithoutProperty) {
         return constructDomExists(j, assertArgument, assertMessage, lengthValue != 0, lengthValue);
       } else {
-        return `assert.length(${joinParams(assertArgumentSource, lengthValue, assertMessage)});`;
+        return `assert.equal(${joinParams(`${assertArgumentSource}.length`, lengthValue, assertMessage)});`;
       }
     } catch {
-      return `assert.length(${joinParams(assertArgumentSource, lengthValue, assertMessage)});`;
+      return `assert.equal(${joinParams(`${assertArgumentSource}.length`, lengthValue, assertMessage)});`;
     }
   }
 }, {
@@ -182,17 +190,17 @@ module.exports = [{
      .to.not.have.string
   */
   matcher: function(expression) {
-    let name = (expression.callee && expression.callee.property.name) || '';
+    var name = (expression.callee && expression.callee.property && expression.callee.property.name) || '';
     return ['contain', 'contains', 'include', 'includes', 'string', 'oneOf'].includes(name);
   },
   transformer: function (expression, path, j) {
     var { assertArgumentSource, assertMessage, hasShouldNot } = extractExpect(path, j);
     var expectedArgument = j(expression.arguments).toSource();
 
-    var assertMethod = hasShouldNot ? 'notIncludes' : 'includes';
+    var assertMethod = !hasShouldNot;
     var assertArguments = (expression.callee.property.name === 'oneOf')
-                          ? joinParams(expectedArgument, assertArgumentSource, assertMessage)
-                          : joinParams(assertArgumentSource, expectedArgument, assertMessage);
+      ? joinParams(`${expectedArgument}.includes(${assertArgumentSource})`, assertMessage)
+      : joinParams(`${assertArgumentSource}.includes(${expectedArgument})`, assertMessage);
 
     return `assert.${assertMethod}(${assertArguments});`;
   }
@@ -207,7 +215,7 @@ module.exports = [{
     .to.be.above
   */
   matcher: function (expression) {
-    return expression.callee && ['lt', 'below', 'lte', 'gt', 'above', 'gte', 'least', 'most'].includes(expression.callee.property.name);
+    return expression.callee && expression.callee.property && ['lt', 'below', 'lte', 'gt', 'above', 'gte', 'least', 'most'].includes(expression.callee.property.name);
   },
   transformer: function (expression, path, j) {
     var {
@@ -215,30 +223,30 @@ module.exports = [{
       assertMessage
     } = extractExpect(path, j);
     var expectedArgument = j(expression.arguments).toSource();
-    let assertMethod;
+    let comparisonSymbol;
 
     switch(expression.callee.property.name) {
       case 'lt':
       case 'below':
-        assertMethod = `lt`;
+        comparisonSymbol = '<';
         break;
       case 'gt':
       case 'above':
-        assertMethod = `gt`;
+        comparisonSymbol = '>';
         break;
       case 'lte':
       case 'most':
-        assertMethod = `lte`;
+        comparisonSymbol = '<=';
         break;
       case 'gte':
       case 'least':
-        assertMethod = `gte`;
+        comparisonSymbol = '>=';
         break;
     }
 
-    return `assert.${assertMethod}(${joinParams(assertArgumentSource, expectedArgument, assertMessage)})`;
+    return `assert.true(${joinParams(`${assertArgumentSource} ${comparisonSymbol} ${expectedArgument}`, assertMessage)})`;
   }
-},{
+}, {
   name: 'expected-dom-specific-assertions',
   // expect(find('[data-test-id=page-title]')).to.have.attr('href', 'link');
   // expect(find('[data-test-id=page-title]')).to.have.attribute('aria-label', 'label');
@@ -248,8 +256,8 @@ module.exports = [{
   // expect(find('[data-test-id=page-title]')).to.have.value('input');
   // expect(find('[data-test-id=page-title]')).to.be.visible;
   // expect(find('[data-test-id=page-title]')).to.be.disabled;
-  matcher: function(expression) {
-    return (expression.callee && ['attr', 'attribute', 'class', 'text', 'value', 'prop'].includes(expression.callee.property.name))
+  matcher: function (expression) {
+    return (expression.callee && expression.callee.property && ['attr', 'attribute', 'class', 'text', 'value', 'prop'].includes(expression.callee.property.name))
       || (expression.property && ['visible', 'disabled', 'enabled'].includes(expression.property.name));
   },
   transformer: function (expression, path, j) {
@@ -281,7 +289,7 @@ module.exports = [{
   // expect().to.be.an;
   // expect().to.be.instanceOf;
   matcher: function (expression) {
-    return (expression.callee && ['a', 'an', 'instanceof'].includes(expression.callee.property.name));
+    return (expression.callee && expression.callee.property && ['a', 'an', 'instanceof'].includes(expression.callee.property.name));
   },
   transformer: function (expression, path, j) {
     var {
@@ -289,27 +297,26 @@ module.exports = [{
       assertMessage
     } = extractExpect(path, j);
     let expectedArgument = expression.arguments[0].value || expression.arguments[0].name.toLowerCase();
-    let assertArgumentType;
 
-    switch(expectedArgument) {
+    switch (expectedArgument) {
       case 'array':
-        assertArgumentType = `Array`;
+        expectedArgument = 'Array';
         break;
       case 'date':
-        assertArgumentType = `Date`;
+        expectedArgument = 'Date';
         break;
       case 'blob':
-        assertArgumentType = `Blob`;
+        expectedArgument = 'Blob';
         break;
       case 'file':
-        assertArgumentType = `File`;
+        expectedArgument = 'File';
         break;
       case 'object':
-        assertArgumentType = `Object`;
+        expectedArgument = 'Object';
         break;
     }
 
-    return `assert.instanceOf(${joinParams(assertArgumentType, assertArgumentSource, assertMessage)});`;
+    return `assert.true(${joinParams(`${assertArgumentSource} instanceof ${expectedArgument} || typeof ${assertArgumentSource} === '${expectedArgument}'`, assertMessage)});`;
   }
 }, {
   name: 'expected-keys',
@@ -317,19 +324,18 @@ module.exports = [{
   // expect(true).to.have.keys(true);
   // expect(true).to.have.property(true);
   matcher: function(expression) {
-    return (expression.callee && ['keys', 'property', 'members'].includes(expression.callee.property.name));
+    return (expression.callee && expression.callee.property && ['keys', 'property', 'members'].includes(expression.callee.property.name));
   },
   transformer: function (expression, path, j) {
     let { assertArgumentSource, assertMessage, hasShouldNot } = extractExpect(path, j);
     let expectedArgument = (expression.callee.property.name === 'members') ? j(expression.arguments).toSource() : `[${j(expression.arguments).toSource()}]`;
-    let assertMethod = hasShouldNot ? 'notDeepIncludes': 'deepIncludes';
-    return `assert.${assertMethod}(${joinParams(assertArgumentSource, expectedArgument, assertMessage)});`;
+    return `assert.${!hasShouldNot}(${joinParams(`${expectedArgument}.every(x => ${assertArgumentSource}.includes(x))`, assertMessage)});`;
   }
 }, {
   name: 'expected-throws',
   // expect(function).to.throw(error);
   matcher: function(expression) {
-    return (expression.callee && expression.callee.property.name === 'throw');
+    return (expression.callee && expression.callee.property && expression.callee.property.name === 'throw');
   },
   transformer: function (expression, path, j) {
     var { assertArgumentSource, assertMessage, hasShouldNot } = extractExpect(path, j);
@@ -338,37 +344,27 @@ module.exports = [{
     let assertArgs = (hasShouldNot) ? joinParams(assertArgumentSource, assertMessage) : joinParams(assertArgumentSource, expectedArgument, assertMessage);
     return `assert.${assertMethod}(${assertArgs});`;
   }
-}
-];
-
-/**
-  Special case need to get this back if needed or remove this removeDuplicateImports
-  {
-    // This specific tranform is only applicable for the Freshdesk code base.
-    // We need to remove this when given outside. or have it as part of a seperate transform statement
-    name: 'expected-plain',
-    matcher: function (expression, path, j) {
-      return (expression.callee && expression.callee.name === 'expect');
-    },
-    transformer: function(expression, path, j) {
-      var {
-        assertArguments,
-        assertArgument,
-        assertMessage,
-        assertArgumentSource
-      } = extractExpect(path, j);
-      var assertMethod = '', params = '';
-
-      if (assertArguments.length > 1) {
-        let expectedValue = (assertArguments.length === 3) ? assertArguments[2] : '';
-        assertMethod = 'equal';
-        params = joinParams(assertArgumentSource, j(expectedValue).toSource(), assertMessage);
-      } else {
-        assertMethod = 'ok';
-        params = joinParams(assertArgumentSource);
-      }
-
-      return `assert.${assertMethod}(${params});`;
-    }
+}, {
+  name: 'expected-calledWith',
+  // expect().to.be.calledWith;
+  matcher: function (expression) {
+    return (expression.callee && expression.callee.property && expression.callee.property.name === 'calledWith');
   },
-**/
+  transformer: function (expression, path, j) {
+    const { assertArgumentSource } = extractExpect(path, j);
+
+    return `assert.true(${assertArgumentSource}.calledWith(${joinParams(j(expression.arguments).toSource())}));`;
+  }
+}, {
+  name: 'expected-callCount',
+  // expect().to.have.callCount;
+  matcher: function (expression) {
+    return (expression.callee && expression.callee.property && expression.callee.property.name === 'callCount');
+  },
+  transformer: function (expression, path, j) {
+    const { assertArgumentSource } = extractExpect(path, j);
+
+    return `assert.equal(${assertArgumentSource}.callCount, ${joinParams(j(expression.arguments).toSource())});`;
+  }
+}
+]

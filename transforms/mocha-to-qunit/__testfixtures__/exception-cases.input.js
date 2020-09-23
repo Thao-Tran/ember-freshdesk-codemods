@@ -96,7 +96,7 @@ describe('Integration | Component', function() {
       // Comment
       [true, true].forEach((key) => {
         // Inner Comment
-        expect(item).to.be.true;
+        expect(key).to.be.true;
       });
 
       [true, true].forEach(function(item) {

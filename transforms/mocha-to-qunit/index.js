@@ -98,7 +98,7 @@ module.exports = function transformer(file, api) {
     }
   }
 
-  function removeMochaImports(callbackHooks, j, root) {    
+  function removeMochaImports(callbackHooks, j, root) {
     callbackHooks.forEach((name) => {
       root.find(j.ImportSpecifier, {
         imported: {
@@ -158,7 +158,7 @@ module.exports = function transformer(file, api) {
       removeDoneMethod(path);
     }
 
-    filterExpressions(j(path).find(j.ExpressionStatement))
+    findExpect(path, j)
       .forEach(transformExpect);
 
     filterExpressions(j(path).find(j.ReturnStatement))
@@ -168,7 +168,6 @@ module.exports = function transformer(file, api) {
   function filterExpressions(graphTree) {
     return graphTree
       .filter(pathHasExpects)
-      .filter(filterOnlyFunctions)
   }
 
   function returnExtraction(path) {
@@ -190,15 +189,20 @@ module.exports = function transformer(file, api) {
     path.node.expression.argument = newNode.value.expression;
   }
 
-  function transformExpect(path) {
+  function transformExpect(expectPath){
+    const path = j(expectPath).closest(j.ExpressionStatement).paths()[0];
+    if (path.node.expression.callee && path.node.expression.callee.name === 'test') {
+      returnExtraction(j(expectPath).closest(j.ReturnStatement).paths()[0]);
+    }
+
     switch (path.node.expression.type) {
       case 'CallExpression':
       case 'MemberExpression':
         memberAndCallExtraction(path);
-      return;
+        return;
       case 'AwaitExpression':
         awaitExtraction(path);
-      return;
+        return;
     }
   }
 
@@ -206,7 +210,7 @@ module.exports = function transformer(file, api) {
     return (expression.callee && expression.callee.name === 'expect')
   }
 
-  function runMacherTranformer(expression, path) {
+  function runMacherTranformer (expression, path) {
     var matchedExpression = j(expression).toSource();
     var BreakException = {};
 

@@ -13,16 +13,16 @@ module('Integration | Component', function(hooks) {
 
   test('basic expect statements', async function(assert) {
     // Simple true validation
-    assert.equal(true, true);
-    assert.equal(true, true, 'expect with message');
+    assert.true(true);
+    assert.true(true, 'expect with message');
     assert.ok('Test');
     assert.ok('Test', 'With message');
     assert.ok('Test');
     assert.ok('Test', 'With message');
 
     // Simple false validation
-    assert.equal(false, false);
-    assert.equal(false, false, 'expect with message');
+    assert.false(false);
+    assert.false(false, 'expect with message');
 
     // Negative cases with variance
     assert.notOk(result);
@@ -30,9 +30,9 @@ module('Integration | Component', function(hooks) {
     assert.notOk(undefined);
 
     // Variations in equal assertion
-    assert.equal(true, true);
-    assert.equal(true, true);
-    assert.equal(true, true);
+    assert.true(true);
+    assert.true(true);
+    assert.true(true);
     assert.equal(find('[data-test-id=page-title]').innerText.trim(), '[Expected] Page Title', '[Message] Expression with message');
     assert.equal(window.location.pathname, '/support/login');
     assert.deepEqual({key: value}, {key: value});
@@ -51,17 +51,17 @@ module('Integration | Component', function(hooks) {
     assert.dom('[data-test-id=page-title]').exists({ count: titles.length }, '[Message] Length Comparison with variable value');
     assert.dom('[data-test-id=page-title]').exists({ count: titlesLength });
 
-    assert.length(pageTitleSelector, 2, 'Assertion Message');
-    assert.length(pageTitleSelector, titlesLength, 'Assertion Message');
-    assert.length(pageTitleSelector, titlesLength);
-    assert.length(find('[data-test-id=page-titles]').querySelectorAll('[data-test-id=page-title]'), 2);
-    assert.length(find('[data-test-id=page-titles]').querySelector('[data-test-id=page-title]'), 1);
+    assert.equal(pageTitleSelector.length, 2, 'Assertion Message');
+    assert.equal(pageTitleSelector.length, titlesLength, 'Assertion Message');
+    assert.equal(pageTitleSelector.length, titlesLength);
+    assert.equal(find('[data-test-id=page-titles]').querySelectorAll('[data-test-id=page-title]').length, 2);
+    assert.equal(find('[data-test-id=page-titles]').querySelector('[data-test-id=page-title]').length, 1);
 
     // Variations in dom assertions
     assert.dom('[data-test-id=page-title]').exists();
     assert.dom('[data-test-id=page-title]').doesNotExist();
-    assert.includes(find('[data-test-id=page-title]').getAttribute('href'), '/some/url');
-    assert.equal(find('[data-test-id=page-title]').className.includes('active'), true);
+    assert.true(find('[data-test-id=page-title]').getAttribute('href').includes('/some/url'));
+    assert.true(find('[data-test-id=page-title]').className.includes('active'));
     assert.ok(find('[data-test-id=page-titles]').querySelector('[data-test-id=page-title]'));
   });
 
@@ -93,38 +93,38 @@ module('Integration | Component', function(hooks) {
 
   // 'expected-contains'
   test('Contains expects expected-contains', function(assert) {
-    assert.includes('Message has input', 'input');
-    assert.includes([1, 2], 2);
-    assert.includes('Message has input', 'input', 'Assertions Message');
-    assert.includes('Message has input', 'input');
-    assert.includes('Message has input', 'input');
+    assert.true('Message has input'.includes('input'));
+    assert.true([1, 2].includes(2));
+    assert.true('Message has input'.includes('input'), 'Assertions Message');
+    assert.true('Message has input'.includes('input'));
+    assert.true('Message has input'.includes('input'));
 
-    assert.includes('Message has input', 'input');
-    assert.includes('Message has input', 'input');
-    assert.includes([1, 2], 2);
-    assert.includes([1, 2], 2);
-    assert.includes('Message has input', 'input');
-    assert.includes(['name', 'customFields.custom_company_text_field'], i.name);
+    assert.true('Message has input'.includes('input'));
+    assert.true('Message has input'.includes('input'));
+    assert.true([1, 2].includes(2));
+    assert.true([1, 2].includes(2));
+    assert.true('Message has input'.includes('input'));
+    assert.true(['name', 'customFields.custom_company_text_field'].includes(i.name));
     // Should handle this edge cases
     // expect(options).to.be.an('array').to.not.include(serviceTaskType);
     // Not contains
-    assert.notIncludes('Message', 'input');
-    assert.notIncludes('Message', 'input', 'Assertions Message');
-    assert.notIncludes('Message', 'input');
-    assert.notIncludes('Message', 'input', 'Assertions Message');
-    assert.notIncludes('Message', 'input');
+    assert.false('Message'.includes('input'));
+    assert.false('Message'.includes('input'), 'Assertions Message');
+    assert.false('Message'.includes('input'));
+    assert.false('Message'.includes('input'), 'Assertions Message');
+    assert.false('Message'.includes('input'));
   });
 
   // expected-closeto
   test('Contains expects expected-match', function(assert) {
-    assert.closeTo(165, 168, 3, 'check whether the given number exists within the provided delta');
-    assert.closeTo(2.5, 2, 0.5);
+    assert.true(165 >= 165 && 165 <= 171, 'check whether the given number exists within the provided delta');
+    assert.true(2.5 >= 1.5 && 2.5 <= 2.5);
   });
 
   // expected-match
   test('Contains expects expected-match', function(assert) {
-    assert.match('Message-1234-message', /[a-zA-Z]+-\d+-[a-zA-Z]/, 'String should match the regex');
-    assert.notMatch('1234-message', /[a-zA-Z]+-\d+-[a-zA-Z]/, 'String should not match the regex');
+    assert.ok('Message-1234-message'.match(/[a-zA-Z]+-\d+-[a-zA-Z]/), 'String should match the regex');
+    assert.notOk('1234-message'.match(/[a-zA-Z]+-\d+-[a-zA-Z]/), 'String should not match the regex');
   });
 
   // 'expected-null'
@@ -160,34 +160,34 @@ module('Integration | Component', function(hooks) {
 
   // compare assertions
   test('Contains expects lt, lte, below, gt, gte, above', function(assert) {
-    assert.lt(1, 2);
-    assert.lt(2, 3, 'assert message');
-    assert.lte(2, 2);
+    assert.true(1 < 2);
+    assert.true(2 < 3, 'assert message');
+    assert.true(2 <= 2);
 
-    assert.gt(1, 2);
-    assert.gt(2, 3, 'assert message');
-    assert.gte(2, 2);
-    assert.gte(findAll('.ember-power-select-option').length, 1);
+    assert.true(1 > 2);
+    assert.true(2 > 3, 'assert message');
+    assert.true(2 >= 2);
+    assert.true(findAll('.ember-power-select-option').length >= 1);
   });
 
   // type check
   test('Contains expects a, an', function(assert) {
-    assert.instanceOf(Array, [1,2,3]);
-    assert.instanceOf(Object, {x: 1});
+    assert.true([1,2,3] instanceof Array || typeof [1,2,3] === 'Array');
+    assert.true({x: 1} instanceof Object || typeof {x: 1} === 'Object');
     let currentDateVar = new Date();
-    assert.instanceOf(Date, currentDateVar);
-    assert.instanceOf(Array, [1, 2]);
-    assert.instanceOf(Blob, blob);
-    assert.instanceOf(File, file);
+    assert.true(currentDateVar instanceof Date || typeof currentDateVar === 'Date');
+    assert.true([1, 2] instanceof Array || typeof [1, 2] === 'Array');
+    assert.true(blob instanceof Blob || typeof blob === 'Blob');
+    assert.true(file instanceof File || typeof file === 'File');
   });
 
   // DeepIncludes
   test('Contains expects keys, property', function(assert) {
-    assert.deepIncludes(model, ['content','products']);
-    assert.deepIncludes(elementResize(2560, 1600), [2,3]);
-    assert.deepIncludes(route.controller, ['emailToDisplay']);
-    assert.notDeepIncludes(requestParams[0], ['custom_fields'], 'some message');
-    assert.deepIncludes(this.get('data.company.domains'), fackDomains);
+    assert.true(['content','products'].every(x => model.includes(x)));
+    assert.true([2,3].every(x => elementResize(2560, 1600).includes(x)));
+    assert.true(['emailToDisplay'].every(x => route.controller.includes(x)));
+    assert.false(['custom_fields'].every(x => requestParams[0].includes(x)), 'some message');
+    assert.true(fackDomains.every(x => this.get('data.company.domains').includes(x)));
   });
 
   // Throws
@@ -199,13 +199,13 @@ module('Integration | Component', function(hooks) {
 
   // Called
   test('Contains expects called', function(assert) {
-    assert.equal(sinon.spy().called, true, 'Assertion Message');
-    assert.equal(resultSpy.called, true);
-    assert.equal(sinon.spy(component.get('marketplace').trigger('click_ticket')).called, true);
-    assert.equal(component.resultSpy.called, true);
-    assert.equal(route.flashMessages.danger.called, true);
-    assert.equal(get(telephony, 'marketplace').publishEvent.called, true);
+    assert.true(sinon.spy().called, 'Assertion Message');
+    assert.true(resultSpy.called);
+    assert.true(sinon.spy(component.get('marketplace').trigger('click_ticket')).called);
+    assert.true(component.resultSpy.called);
+    assert.true(route.flashMessages.danger.called);
+    assert.true(get(telephony, 'marketplace').publishEvent.called);
 
-    assert.equal(sinon.spy().called, false);
+    assert.false(sinon.spy().called);
   });
 });
