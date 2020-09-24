@@ -4,19 +4,21 @@
 ![](https://github.com/freshdesk/ember-freshdesk-codemods/workflows/Node%20CI/badge.svg)
 
 
-A collection of codemods by Freshworks.
+A collection of codemods by Freshworks forked by me. There were some issues with the `mocha-to-qunit` codemod that were annoying to fix manually after applying the codemod, so I fixed the issues myself.
+
+## Installation
+Clone this repo and install jscodeshift globally.
+```
+git clone https://github.com/Thao-Tran/ember-freshdesk-codemods.git
+npm i -g jscodeshift
+```
 
 ## Usage
 
 To run a specific codemod from this project, you would run the following:
 
 ```
-npx @freshworks/ember-codemods <TRANSFORM NAME> path/of/files/ or/some**/*glob.js
-
-# or
-
-yarn global add @freshworks/ember-codemods
-ember-codemods <TRANSFORM NAME> path/of/files/ or/some**/*glob.js
+jscodeshift -t <path-to-repo>/transforms/<transform-name>/index.js <path-to-directory-or-file-to-transform>
 ```
 
 ## Transforms

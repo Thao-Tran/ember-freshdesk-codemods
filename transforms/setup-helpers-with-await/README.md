@@ -4,12 +4,7 @@
 ## Usage
 
 ```
-npx ember-freshdesk-codemods setup-helpers-with-await path/of/files/ or/some**/*glob.js
-
-# or
-
-yarn global add ember-freshdesk-codemods
-ember-freshdesk-codemods setup-helpers-with-await path/of/files/ or/some**/*glob.js
+jscodeshift -t <path-to-repo>/transforms/setup-helpers-with-await/index.js <path-to-directory-or-file-to-transform>
 ```
 
 ## Input / Output

@@ -4,12 +4,7 @@
 ## Usage
 
 ```
-npx ember-freshdesk-codemods async-leaks path/of/files/ or/some**/*glob.js
-
-# or
-
-yarn global add ember-freshdesk-codemods
-ember-freshdesk-codemods async-leaks path/of/files/ or/some**/*glob.js
+jscodeshift -t <path-to-repo>/transforms/async-leaks/index.js <path-to-directory-or-file-to-transform>
 ```
 
 ## Input / Output

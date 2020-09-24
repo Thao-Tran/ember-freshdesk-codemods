@@ -4,12 +4,7 @@
 ## Usage
 
 ```
-npx @freshworks/ember-codemods engine-route-transitions path/of/files/ or/some**/*glob.js
-
-# or
-
-yarn global add @freshworks/ember-codemods
-@freshworks/ember-codemods engine-route-transitions path/of/files/ or/some**/*glob.js
+jscodeshift -t <path-to-repo>/transforms/engine-route-transitions/index.js <path-to-directory-or-file-to-transform>
 ```
 
 ## Input / Output

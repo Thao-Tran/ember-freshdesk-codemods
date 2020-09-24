@@ -4,12 +4,7 @@
 ## Usage
 
 ```
-npx @freshworks/ember-codemods remove-unused-get-import path/of/files/ or/some**/*glob.js
-
-# or
-
-yarn global add @freshworks/ember-codemods
-@freshworks/ember-codemods remove-unused-get-import path/of/files/ or/some**/*glob.js
+jscodeshift -t <path-to-repo>/transforms/remove-unused-get-import/index.js <path-to-directory-or-file-to-transform>
 ```
 
 ## Input / Output

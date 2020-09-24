@@ -4,12 +4,7 @@
 ## Usage
 
 ```
-npx ember-freshdesk-codemods mocha-to-qunit path/of/files/ or/some**/*glob.js
-
-# or
-
-yarn global add ember-freshdesk-codemods
-ember-freshdesk-codemods mocha-to-qunit path/of/files/ or/some**/*glob.js
+jscodeshift -t <path-to-repo>/transforms/mocha-to-qunit/index.js <path-to-directory-or-file-to-transform>
 ```
 
 ## Input / Output

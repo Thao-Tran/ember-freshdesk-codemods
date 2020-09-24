@@ -4,12 +4,7 @@
 ## Usage
 
 ```
-npx ember-codemods modify-import path/of/files/ or/some**/*glob.js
-
-# or
-
-yarn global add ember-codemods
-ember-codemods modify-import path/of/files/ or/some**/*glob.js
+jscodeshift -t <path-to-repo>/transforms/modify-import/index.js <path-to-directory-or-file-to-transform>
 ```
 
 ## Input / Output
